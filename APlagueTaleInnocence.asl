@@ -4,26 +4,28 @@ state("APlagueTaleInnocence_x64", "Steam")
 {
     bool     Loading       : "WwiseLibPCx64R.dll", 0x262521;
     int      PlayerControl : 0x152E91C;
-    string50 MapName       : 0x15206E0, 0x88, 0x0, 0xD0, 0x990, 0x260;
+    string50 MapString     : 0x15206E0, 0x88, 0x0, 0xD0, 0x990, 0x260;
+    int      CutsceneState : 0x164BC34;
 }
 
 state("APlagueTaleInnocence_x64", "Epic")
 {
     bool     Loading       : "WwiseLibPCx64R.dll", 0x262521;
     int      PlayerControl : 0x152E6DC;
-    string50 MapName       : 0x16AADC0, 0x10, 0x110, 0xD8, 0x10, 0x30, 0x170, 0x260;
+    string50 MapString     : 0x16AADC0, 0x10, 0x110, 0xD8, 0x10, 0x30, 0x170, 0x260;
+    int      CutsceneState : 0x164B9F4;
 }
 
 state("APlagueTaleInnocence_x64", "Xbox")
 {
     bool     Loading       : "WwiseLibPCx64R.dll", 0x262521;
     int      PlayerControl : 0x1744EBC;
-    string50 MapName       : "MessageBus.dll", 0x5C0DE0, 0x340, 0x668;
+    string50 MapString     : "MessageBus.dll", 0x5C0DE0, 0x340, 0x668;
 }
 
 startup
 {
-    var Chapters = new Dictionary<string,string>
+    var chapters = new Dictionary<string,string>
     {
         // { "DOMAIN",           "Chapter 1 - The de Rune Legacy" },
         { "VILLAGE",          "Chapter 2 - The Strangers" },
@@ -44,7 +46,7 @@ startup
         { "EPILOGUE",         "Chapter 17 - For Each Other" }
     };
 
-    foreach (var chapter in Chapters)
+    foreach (var chapter in chapters)
         settings.Add(chapter.Key, true, chapter.Value);
 
     vars.OnStart = (EventHandler)((s, e) => vars.DoneMaps = new List<string> { current.Map });
@@ -81,21 +83,21 @@ update
 {
     if (version == "Unknown!") return false;
 
-    current.Map = current.MapName.Split('>')[1];
+    current.Map = current.MapString.Split('>')[1];
 
     // DEBUG CODE
     // print(current.Loading.ToString());
-    // print(current.MapName.Split('>')[1].ToString());
+    // print(current.Map);
 }
 
 start
 {
-    return current.MapName.Contains("DOMAIN") && current.PlayerControl == 4024 && old.PlayerControl == 4025;
+    return current.Map.Contains("DOMAIN") && current.PlayerControl == 4024 && old.PlayerControl == 4025;
 }
 
 split
 {
-    if (settings[current.Map] && !vars.DoneMaps.Contains(current.Map))
+    if (settings[current.Map] && !vars.DoneMaps.Contains(current.Map) || current.Map.Contains("EPILOGUE") && current.CutsceneState == 1079474040)
     {
         vars.DoneMaps.Add(current.Map);
         return true;
